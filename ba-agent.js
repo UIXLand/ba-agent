@@ -92,10 +92,9 @@ ${prd.out_of_scope?.map(o => `• ${o}`).join('\n') ?? '—'}`
 
 async function processTask(taskId) {
   const task = await getTask(taskId)
-  const comments = await getComments(taskId)
+  console.log(`\n🔍 Проверяем задачу: ${task.name}`)
 
-  // Только задачи с паспортом
-  if (!task.description?.includes('ПАСПОРТ ФИЧИ')) return
+  const comments = await getComments(taskId)
 
   // ── КЛЮЧЕВОЕ ИЗМЕНЕНИЕ ──
   // BA-агент начинает работу ТОЛЬКО после "approved"
@@ -180,12 +179,29 @@ app.post('/process', async (req, res) => {
 
 app.post('/webhook', async (req, res) => {
   res.sendStatus(200)
-  const { event, comment, task_id } = req.body
+
+  // Логируем всё что приходит
+  console.log('📥 BA Webhook body:', JSON.stringify(req.body).slice(0, 300))
+  console.log('📥 BA Webhook query:', JSON.stringify(req.query))
+
+  const body = { ...req.body, ...req.query }
+  const { event, comment, task_id } = body
+
+  // Формат 1 — стандартный ClickUp webhook
   if (event === 'taskCommentPosted') {
     const text = comment?.comment_text?.toLowerCase() ?? ''
     if (text.includes('approved') || text.includes('апрув') || text === '✅') {
+      console.log('✅ Апрув найден через webhook!')
       processTask(task_id).catch(console.error)
     }
+    return
+  }
+
+  // Формат 2 — ClickUp Automation (отправляет task_id напрямую без event)
+  const taskId = task_id || body.id || body.taskId
+  if (taskId) {
+    console.log('📥 Automation webhook для задачи:', taskId)
+    processTask(taskId).catch(console.error)
   }
 })
 
