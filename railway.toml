@@ -2,4 +2,4 @@
 builder = "NIXPACKS"
 
 [deploy]
-startCommand = "node product-agent.js"
+startCommand = "node ba-agent.js"
