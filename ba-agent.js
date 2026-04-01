@@ -20,7 +20,7 @@ const clickup = axios.create({
 
 const LIST_ID = process.env.CLICKUP_LIST_ID
 const PM_AGENT_URL = process.env.PM_AGENT_URL || 'https://pm-ai-agent-production.up.railway.app'
-const PORT = process.env.PORT || process.env.BA_AGENT_PORT || 3002
+const PORT = process.env.PORT || process.env.PORT || process.env.BA_AGENT_PORT || 3002
 
 // ─────────────────────────────────────────
 // ПРОМПТЫ
