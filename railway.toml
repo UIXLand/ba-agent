@@ -2,5 +2,4 @@
 builder = "NIXPACKS"
 
 [deploy]
-startCommand = "node ba-agent.js"
-healthcheckPath = "/health"
+startCommand = "node product-agent.js"
