@@ -180,29 +180,21 @@ app.post('/process', async (req, res) => {
 app.post('/webhook', async (req, res) => {
   res.sendStatus(200)
 
-  // Логируем всё что приходит
-  console.log('📥 BA Webhook body:', JSON.stringify(req.body).slice(0, 300))
-  console.log('📥 BA Webhook query:', JSON.stringify(req.query))
+  const raw = { ...req.body, ...req.query }
+  console.log('📥 BA Webhook получен:', JSON.stringify(raw).slice(0, 300))
 
-  const body = { ...req.body, ...req.query }
-  const { event, comment, task_id } = body
+  // ClickUp отправляет данные внутри поля payload
+  const payload = raw.payload ?? raw
+  const taskId = payload.id || payload.task_id || raw.task_id || raw.id
 
-  // Формат 1 — стандартный ClickUp webhook
-  if (event === 'taskCommentPosted') {
-    const text = comment?.comment_text?.toLowerCase() ?? ''
-    if (text.includes('approved') || text.includes('апрув') || text === '✅') {
-      console.log('✅ Апрув найден через webhook!')
-      processTask(task_id).catch(console.error)
-    }
+  console.log('🔍 BA Task ID:', taskId)
+
+  if (!taskId) {
+    console.log('⚠️ Webhook без task_id — пропускаем')
     return
   }
 
-  // Формат 2 — ClickUp Automation (отправляет task_id напрямую без event)
-  const taskId = task_id || body.id || body.taskId
-  if (taskId) {
-    console.log('📥 Automation webhook для задачи:', taskId)
-    processTask(taskId).catch(console.error)
-  }
+  processTask(taskId).catch(console.error)
 })
 
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)) }
