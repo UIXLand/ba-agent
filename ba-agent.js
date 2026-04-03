@@ -13,8 +13,6 @@ const LIST_ID = process.env.CLICKUP_LIST_ID
 const PM_AGENT_URL = process.env.PM_AGENT_URL || 'https://pm-ai-agent-production.up.railway.app'
 const PORT = process.env.PORT || process.env.BA_AGENT_PORT || 3002
 
-const processingTasks = new Set()
-
 const QUESTIONS_PROMPT = `Ты Business Analyst Agent продукта SafeButton — мобильного приложения тревожной кнопки.
 На основе паспорта фичи задай уточняющие вопросы для написания детального PRD.
 Максимум 5 вопросов — только те которые реально влияют на реализацию.
@@ -110,14 +108,6 @@ async function processTask(taskId) {
 
 async function _processTask(taskId) {
   const task = await getTask(taskId)
-
-  // Проверяем что задача из нужного списка
-  const taskListId = task.list?.id ?? task.folder?.id
-  if (taskListId && taskListId !== LIST_ID) {
-    console.log(`⏭️ Пропускаем задачу из другого списка: ${task.name} (list: ${taskListId})`)
-    return
-  }
-
   console.log(`\n🔍 Проверяем задачу: ${task.name}`)
 
   const comments = await getComments(taskId)
