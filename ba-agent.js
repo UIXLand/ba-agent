@@ -91,7 +91,31 @@ ${prd.out_of_scope?.map(o => `• ${o}`).join('\n') ?? '—'}`
 }
 
 async function processTask(taskId) {
+  // Защита от параллельной обработки
+  if (processingTasks.has(taskId)) {
+    console.log(`⏳ Задача уже обрабатывается: ${taskId}`)
+    return
+  }
+  processingTasks.add(taskId)
+
+  try {
+    await _processTask(taskId)
+  } finally {
+    // Снимаем блокировку через 30 секунд
+    setTimeout(() => processingTasks.delete(taskId), 30000)
+  }
+}
+
+async function _processTask(taskId) {
   const task = await getTask(taskId)
+
+  // Проверяем что задача из нужного списка
+  const taskListId = task.list?.id ?? task.folder?.id
+  if (taskListId && taskListId !== LIST_ID) {
+    console.log(`⏭️ Пропускаем задачу из другого списка: ${task.name} (list: ${taskListId})`)
+    return
+  }
+
   console.log(`\n🔍 Проверяем задачу: ${task.name}`)
 
   const comments = await getComments(taskId)
